@@ -22,6 +22,7 @@ from .exceptions import (
     OutputGuardrailTripwireTriggered,
     UserError,
 )
+from .fallback import retry_with_fallbacks
 from .guardrail import (
     GuardrailFunctionOutput,
     InputGuardrail,
@@ -259,5 +260,6 @@ __all__ = [
     "build_transform_agent",
     "build_qna_agent",
     "build_aggregator_agent",
+    "retry_with_fallbacks",
     "__version__",
 ]

@@ -16,6 +16,7 @@ from .exceptions import (
     OutputGuardrailTripwireTriggered,
     UserError,
 )
+from .fallback import retry_with_fallbacks
 from .guardrail import (
     GuardrailFunctionOutput,
     InputGuardrail,
@@ -249,5 +250,6 @@ __all__ = [
     "gen_trace_id",
     "gen_span_id",
     "default_tool_error_function",
+    "retry_with_fallbacks",
     "__version__",
 ]

@@ -7,6 +7,12 @@ from openai import AsyncOpenAI
 from . import _config
 from .agent import Agent, ToolsToFinalOutputFunction, ToolsToFinalOutputResult
 from .agent_output import AgentOutputSchema, AgentOutputSchemaBase
+from .build import (
+    build_aggregator_agent,
+    build_analysis_agent,
+    build_qna_agent,
+    build_transform_agent,
+)
 from .computer import AsyncComputer, Button, Computer, Environment
 from .exceptions import (
     AgentsException,
@@ -250,6 +256,10 @@ __all__ = [
     "gen_trace_id",
     "gen_span_id",
     "default_tool_error_function",
+    "build_analysis_agent",
+    "build_transform_agent",
+    "build_qna_agent",
+    "build_aggregator_agent",
     "retry_with_fallbacks",
     "__version__",
 ]

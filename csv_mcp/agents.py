@@ -6,61 +6,79 @@ from agents import Agent, handoff
 from agents.extensions.handoff_prompt import RECOMMENDED_PROMPT_PREFIX
 from pydantic import BaseModel
 
+
 # --- Pydantic Models for Handoff Inputs ---
 class AnalysisHandoffInput(BaseModel):
     """Input for analysis_agent handoff. Currently empty as analysis uses full dataset from history."""
+
     pass
+
 
 class TransformHandoffInput(BaseModel):
     """Input for transform_agent handoff."""
+
     user_query_for_transform: str
+
 
 class QnAHandoffInput(BaseModel):
     """Input for qna_agent handoff."""
+
     user_question: str
+
 
 # --- Pydantic Models for Agent Outputs ---
 class TransformOutput(BaseModel):
     """Output model for transform_agent."""
+
     cleaned_data_csv_string: str
     transform_summary: str
 
+
 class AnalysisOutput(BaseModel):
     """Output model for analysis_agent."""
+
     analysis_summary: str
     # Example: could also include more structured data like:
-    # anomalies_found: List[str] = [] 
+    # anomalies_found: List[str] = []
     # key_insights: List[str] = []
+
 
 class QnAOutput(BaseModel):
     """Output model for qna_agent."""
-    response_type: str # E.g., "answer", "clarification_needed", "cannot_answer"
+
+    response_type: str  # E.g., "answer", "clarification_needed", "cannot_answer"
     answer: Optional[str] = None
-    posed_questions_and_answers: Optional[List[Dict[str, str]]] = None # For when it poses and answers its own clarificatory q's
+    posed_questions_and_answers: Optional[List[Dict[str, str]]] = (
+        None  # For when it poses and answers its own clarificatory q's
+    )
     # error_message: Optional[str] = None # If cannot_answer or error
 
+
 # --- Agent Builder Functions ---
+
 
 def build_analysis_agent(model_name: str = "o3") -> Agent:
     """Return an agent that analyzes CSV data."""
     return Agent(
         name="analysis_agent",
         instructions="You are an expert data analyst. Analyze the provided CSV data (from conversation history) for insights and anomalies. "
-                     "Focus on the data itself. The user may provide specific instructions via the handoff input. "
-                     "Your output MUST conform to the AnalysisOutput schema, providing an 'analysis_summary'.",
+        "Focus on the data itself. The user may provide specific instructions via the handoff input. "
+        "Your output MUST conform to the AnalysisOutput schema, providing an 'analysis_summary'.",
         model=model_name,
         output_type=AnalysisOutput,
     )
+
 
 def build_transform_agent(model_name: str = "o3") -> Agent:
     """Return an agent that transforms CSV data."""
     return Agent(
         name="transform_agent",
         instructions="You are an expert data transformer. Transform the raw CSV data (from conversation history) based on the user's request provided in the input. "
-                     "Your output MUST conform to the TransformOutput schema, providing 'cleaned_data_csv_string' and 'transform_summary'.",
+        "Your output MUST conform to the TransformOutput schema, providing 'cleaned_data_csv_string' and 'transform_summary'.",
         model=model_name,
         output_type=TransformOutput,
     )
+
 
 def build_qna_agent(primary_model: str = "gpt-4.1", fallbacks: Optional[list[str]] = None) -> Agent:
     """Return a question answering agent for the CSV data."""
@@ -68,10 +86,11 @@ def build_qna_agent(primary_model: str = "gpt-4.1", fallbacks: Optional[list[str
     return Agent(
         name="qna_agent",
         instructions="You are a helpful Q&A assistant. Answer questions based on the provided CSV data (from conversation history) and the specific user question from the input. "
-                     "Your output MUST conform to the QnAOutput schema, providing 'response_type' and 'answer' or other relevant fields.",
+        "Your output MUST conform to the QnAOutput schema, providing 'response_type' and 'answer' or other relevant fields.",
         model=primary_model,
         output_type=QnAOutput,
     )
+
 
 def build_primary_interaction_agent(
     analysis_agent_model: str = "o3",
@@ -95,10 +114,10 @@ def build_primary_interaction_agent(
         "The CSV data itself will be available in the conversation history. "
         "If the user asks to 'summarize session' or 'generate report', and you see a system message in the history containing 'session_reports', "
         "provide a concise summary of these reports. Do not try to handoff for this specific task. "
-        "If you are unsure about other tasks, ask for clarification. "
+        "If a request is ambiguous or unclear, proactively ask clarifying questions before deciding to handoff. "
         f"{RECOMMENDED_PROMPT_PREFIX}"
     )
-    
+
     # Define a dummy callable for on_handoff
     noop_handoff_callback = lambda *args, **kwargs: None
 
@@ -110,20 +129,21 @@ def build_primary_interaction_agent(
             handoff(
                 agent=analysis_agent,
                 input_type=AnalysisHandoffInput,
-                on_handoff=noop_handoff_callback, # Using dummy callable
+                on_handoff=noop_handoff_callback,  # Using dummy callable
             ),
             handoff(
                 agent=transform_agent,
                 input_type=TransformHandoffInput,
-                on_handoff=noop_handoff_callback, # Using dummy callable
+                on_handoff=noop_handoff_callback,  # Using dummy callable
             ),
             handoff(
                 agent=qna_agent,
                 input_type=QnAHandoffInput,
-                on_handoff=noop_handoff_callback, # Using dummy callable
+                on_handoff=noop_handoff_callback,  # Using dummy callable
             ),
         ],
     )
+
 
 # Example of how agents might be built and passed to orchestrator
 # This part would typically be in the orchestrator or main script
